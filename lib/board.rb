@@ -1,3 +1,5 @@
+require_relative "pieces"
+
 LETTER_TO_NUM = {'a'=> '1', 'b' => '2', 'c' => '3', 'd' => '4', 'e' => '5', 'f' => '6',
 'g' => '7', 'h' => '8'}
 
@@ -14,11 +16,12 @@ end
 class Board
   def initialize
     @board = createboard()
+    placepieces()
     printboard()
   end
 
   private
-  def createboard
+  def createboard()
     buffer_map = Hash.new()
     for number in ('1'..'8').reverse_each() do #the printing order - row first, then column, but rows are reversed
       for letter in 'a'..'h' do
@@ -26,6 +29,10 @@ class Board
       end
     end
     return buffer_map
+  end
+
+  def placepieces()
+    @board['a1'].piece = Rook.new('a1', Colour::WHITE)
   end
 
   def printboard()
@@ -51,9 +58,9 @@ class Cell
 
   def printcell()
     if !@piece
-      string = "   "
+      string = " "
     else
-      pass #placeholder for piece info
+      string = @piece.string
     end
 
     if @state == CellState::DEFAULT
@@ -61,7 +68,7 @@ class Cell
     else 
       bg_colour = 100
     end
-    return "\e[#{@piece_colour};#{bg_colour}m#{string}\e[0m"
+    return "\e[#{@piece_colour};#{bg_colour}m #{string} \e[0m"
 
   end
 
@@ -83,9 +90,4 @@ class Cell
   end
 end
 
-class Piece
-end
-
-class Rook < Piece
-end
 game = Board.new()
