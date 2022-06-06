@@ -1,5 +1,5 @@
 require_relative "constant"
-require_relative "board"
+require_relative "game"
 
-game = Board.new()
-game.selectpiece('e4')
+game = Game.new()
+game.turn()

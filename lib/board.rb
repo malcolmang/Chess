@@ -4,26 +4,40 @@ require_relative "constant"
 module Background_Colour
   WHITE = 106
   BLACK = 100
-  CAPTUREPOSSIBLE = 101
+  CAPTUREPOSSIBLE = 101 
+  GREEN = 102
+  PREVIOUSMOVE = 44
 end
 
 module Foreground_Colour
   WHITE = 97
   BLACK = 30
-  HIGHLIGHT = 31
+  HIGHLIGHT = 31   
 end
 
 module CellState
-  DEFAULT = 0
-  POSSIBLE_PUSH = 1
-  POSSIBLE_CAPTURE = 2
+  DEFAULT = 0 
+  POSSIBLE_PUSH = 1 #Can move
+  POSSIBLE_CAPTURE = 2 #Can capture 
+  SELECTION = 3 #Selected piece 
+  PREVIOUSMOVE = 4 #Previous move
 end
 
 class Board
+  attr_accessor :board
   def initialize
     @board = createboard()
+    @prevfrom = nil
+    @prevto = nil
     placepieces()
-    printboard()
+  end
+
+  def inbounds(pos)
+    if pos[0] >= 'a' && pos[0] <= 'h' && pos[1] >= '1' && pos[1] <= '8'
+      return true
+    else
+      return false
+    end
   end
 
   def createboard()
@@ -42,14 +56,41 @@ class Board
     else
       moves = []
     end
+    @board[position].state = CellState::SELECTION
+    moves.delete_if {|pos| !@board[pos]}
     highlight_moves(moves)
-    printboard()
+    return moves
   end 
 
   def highlight_moves(moves)
     moves.each do |move|
       !@board[move].piece ? (@board[move].state = CellState::POSSIBLE_PUSH) : (@board[move].state = CellState::POSSIBLE_CAPTURE)
     end
+  end
+
+  def reset_highlights()
+    @board.each do |key, cell|
+      cell.state = CellState::DEFAULT
+    end
+    #highlight previous moves
+    if @prevfrom && @prevto 
+      @board[@prevfrom].state = CellState::PREVIOUSMOVE
+      @board[@prevto].state = CellState::PREVIOUSMOVE
+    end 
+  end
+
+  def move(position, newposition)
+    if @prevfrom && @prevto
+      @board[@prevfrom].state = CellState::DEFAULT
+      @board[@prevto].state = CellState::DEFAULT
+    end
+    @prevfrom = position
+    @prevto = newposition
+    capturedpiece = @board[newposition].piece ? @board[newposition].piece.string : ""
+    @board[newposition].piece = @board[position].piece
+    @board[position].piece = nil
+    @board[newposition].piece.position = newposition
+    return capturedpiece
   end
 
 
@@ -60,11 +101,11 @@ class Board
     placepiece('b1', white, 'knight')
     placepiece('c1', white, 'bishop') 
     placepiece('d1', white, 'queen') 
-    placepiece('e1', white, 'king')
+    placepiece('e1', white, 'king') #e1
     placepiece('f1', white, 'bishop')
-    placepiece('g1', white, 'knight')
+    placepiece('g1', white, 'knight') 
     placepiece('h1', white, 'rook')
-    placepiece('a2', white, 'pawn')
+    placepiece('a2', white, 'pawn') 
     placepiece('b2', white, 'pawn')
     placepiece('c2', white, 'pawn')
     placepiece('d2', white, 'pawn')
@@ -108,8 +149,7 @@ class Board
     @board[position].piece = piece.new(position, colour)
   end
 
-  def printboard()
-    puts "\n\n"
+  def print_board()
     for number in ('1'..'8').reverse_each() do #the printing order - row first, then column, but rows are reversed
       outputstr = "#{number} "
       for letter in 'a'..'h' do
@@ -144,6 +184,10 @@ class Cell
       string = "\u25CF"
     elsif @state == CellState::POSSIBLE_CAPTURE
       bg_colour = Background_Colour::CAPTUREPOSSIBLE
+    elsif @state == CellState::SELECTION
+      bg_colour = Background_Colour::GREEN
+    elsif @state == CellState::PREVIOUSMOVE
+      bg_colour = Background_Colour::PREVIOUSMOVE
     end
 
     return "\e[#{piece_colour};#{bg_colour}m #{string} \e[0m"
