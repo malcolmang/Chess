@@ -49,8 +49,22 @@ class Board
     end
     return buffer_map
   end
+  
+  def account_for_check(originalpos ,moves, colour) #don't allow moves that would put the player in check, or moves must move king out of check
+      originalcopy = self.dup
+      moves.each do |newpos|
+        boardcopy = originalcopy.dup
+        boardcopy.move(originalpos,newpos)
+        
+        if check_for_check(colour,boardcopy.board)
+          moves.delete(newpos)
+        end
+        boardcopy.move(newpos,originalpos)
+      end
+    return moves
+  end
 
-  def selectpiece(position)
+  def selectpiece(position) #Selects a piece and highlights possible moves
     if @board[position].piece
       moves = @board[position].piece.allowed_moves(@board)
     else
@@ -58,6 +72,7 @@ class Board
     end
     @board[position].state = CellState::SELECTION
     moves.delete_if {|pos| !@board[pos]}
+    moves = account_for_check(position, moves, @board[position].piece.colour)
     highlight_moves(moves)
     return moves
   end 
@@ -79,13 +94,14 @@ class Board
     end 
   end
 
-  def move(position, newposition)
+  def move(position, newposition, en_passant = false, castle = false, promotion = false)
     if @prevfrom && @prevto
       @board[@prevfrom].state = CellState::DEFAULT
       @board[@prevto].state = CellState::DEFAULT
     end
     @prevfrom = position
     @prevto = newposition
+
     capturedpiece = @board[newposition].piece ? @board[newposition].piece.string : ""
     @board[newposition].piece = @board[position].piece
     @board[position].piece = nil
@@ -158,6 +174,31 @@ class Board
       puts outputstr
     end
     puts "   a  b  c  d  e  f  g  h "
+  end
+
+  def check_for_check(colour, board = @board)
+    kingpos = nil
+    #search for king
+    board.each do |key, cell|
+      if cell.piece && cell.piece.colour == colour && cell.piece.string == "\u265a"
+        kingpos = key
+      end
+    end
+    puts "kingpos: #{kingpos}"
+    #search for pieces that can attack king
+    board.each do |key, cell|
+      if cell.piece && cell.piece.colour != colour && cell.piece.string == "\u265f" && cell.piece.threat_moves().include?(kingpos) 
+        p "hello #{cell.piece.threat_moves()}"
+        puts "pawn check at #{key}"
+        return true 
+      else 
+        if cell.piece && cell.piece.colour != colour && cell.piece.allowed_moves(@board).include?(kingpos)
+          puts "check for #{cell.piece.string} at #{key}"
+          return true
+        end
+      end 
+    end
+    return false
   end
 end
 

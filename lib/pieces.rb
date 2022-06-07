@@ -262,6 +262,30 @@ class Pawn < Piece  #Moves up or down depending on black/white. If at original p
     
     return moves
   end
+
+  def threat_moves()
+    moves = []
+    if @colour == Foreground_Colour::WHITE
+      #left diagonal
+      if @position[0] != 'a' && @position[1] != '8'
+        moves << translateposition(@position, -1, 1)
+      end
+      #right diagonal
+      if @position[0] != 'h' && @position[1] != '8'
+        moves << translateposition(@position, 1, 1)
+      end
+    else
+      #left diagonal
+      if @position[0] != 'a' && @position[1] != '1'
+              moves << translateposition(@position, -1, -1)
+      end
+      #right diagonal
+      if @position[0] != 'h' && @position[1] != '1'
+        moves << translateposition(@position, 1, -1)
+      end 
+    end
+    return moves
+  end
 end
 
 class Bishop < Piece

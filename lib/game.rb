@@ -11,8 +11,8 @@ class Game
   end
 
   def print_screen()
-    system("clear")
-    system("cls")
+    #system("clear")
+    #system("cls")
     whichplayer = @player == Foreground_Colour::WHITE ? "White" : "Black"
     puts "Current Player: #{whichplayer}"
     puts "\n\n"
@@ -79,7 +79,10 @@ class Game
     end
   end
 
-  def update_board
+  def update_board(colour)
+    #cleanse en passant flag, check if game is over (won, stalemate), check for check
+    @board.check_for_check(colour)
+    return true
   end
 
   def turn()
@@ -92,9 +95,10 @@ class Game
       else
         (@player == Foreground_Colour::WHITE ? @whitegains +=@board.move(position, selectedmove) : @blackgains+=@board.move(position, selectedmove)) 
         @board.reset_highlights()
+        finish = update_board(@player)
         @player = @player == Foreground_Colour::WHITE ? Foreground_Colour::BLACK : Foreground_Colour::WHITE
+        return finish 
       end
-      update_board()
     end #end of turn loop
   end
 end
