@@ -11,8 +11,8 @@ class Game
   end
 
   def print_screen()
-    system("clear")
-    system("cls")
+    #system("clear")
+    #system("cls")
     whichplayer = @player == Foreground_Colour::WHITE ? "White" : "Black"
     puts "Current Player: #{whichplayer}"
     puts "\n\n"

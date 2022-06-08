@@ -75,6 +75,7 @@ class Board
   def selectpiece(position) #Selects a piece and highlights possible moves
     if @board[position].piece
       moves = @board[position].piece.allowed_moves(@board)
+      puts "moves: #{moves}"
     else
       moves = []
     end
@@ -142,6 +143,7 @@ class Board
         #holy hell!
         if position[0] != newposition[0] && capturedpiece == "" && position[1] != newposition[1]
           @board[translateposition(newposition,0,-1)].piece = nil
+          capturedpiece = "\u265f"
         end
       else
         if position[0] != newposition[0] && capturedpiece == "" && position[1] != newposition[1]
@@ -150,8 +152,8 @@ class Board
         end
       end
       #promotion 
-      if position[1] == '8' || position[1] == '1'
-        @board[newposition].piece = ask_promotion(@realboard).new(newposition, @board[newposition].piece.colour)
+      if newposition[1] == '8' || newposition[1] == '1'
+        @board[newposition].piece = ask_promotion().new(newposition, @board[newposition].piece.colour)
       end
     end 
     return capturedpiece
