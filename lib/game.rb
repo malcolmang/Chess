@@ -11,13 +11,13 @@ class Game
   end
 
   def print_screen()
-    #system("clear")
-    #system("cls")
+    system("clear")
+    system("cls")
     whichplayer = @player == Foreground_Colour::WHITE ? "WHITE" : "BLACK"
     puts "===================================="
-    puts "Current Player: #{whichplayer}"
+    puts "   Current Player: #{whichplayer}"
     puts "===================================="
-    puts "\n\n"
+    puts "\n"
     puts "   " + "#{@blackgains}".chars.sort.join.reverse
     @board.print_board()
     puts "   " + "#{@whitegains}".chars.sort.join.reverse

@@ -269,14 +269,14 @@ class Pawn < Piece  #Moves up or down depending on black/white. If at original p
       #if there is a pawn next to this one that has en_passant flag, allow capture to one vertical space behind it
       #-1 if black, 1 if white
       vertical = Foreground_Colour::BLACK == @colour ? -1 : 1
-      puts "==============\nFor pawn at #{@position}\n======================="
+      #puts "==============\nFor pawn at #{@position}\n======================="
         if @position[0] != 'a'
           if board[translateposition(@position, -1, 0)].piece
-            puts "found a piece to the left of #{@position} at #{translateposition(@position, -1, 0)}"
+            #puts "found a piece to the left of #{@position} at #{translateposition(@position, -1, 0)}"
             if board[translateposition(@position, -1, 0)].piece.string == "\u265f"
-              puts "found a pawn to the left of #{@position} at #{translateposition(@position, -1, 0)}"
+              #puts "found a pawn to the left of #{@position} at #{translateposition(@position, -1, 0)}"
               if board[translateposition(@position, -1, 0)].piece.en_passant && board[translateposition(@position, -1, 0)].piece.colour != @colour
-                puts "passant found?!?!"
+                #puts "passant found?!?!"
                 moves << translateposition(@position, -1, vertical)
               end
             end
@@ -284,11 +284,11 @@ class Pawn < Piece  #Moves up or down depending on black/white. If at original p
         end
         if @position[0] != 'h'
           if board[translateposition(@position, 1, 0)].piece
-            puts "found a piece to the right of #{@position} at #{translateposition(@position, 1, 0)}"
+            #puts "found a piece to the right of #{@position} at #{translateposition(@position, 1, 0)}"
             if board[translateposition(@position, 1, 0)].piece.string == "\u265f"
-              puts "found a pawn to the right of #{@position} at #{translateposition(@position, 1, 0)}"
+              #puts "found a pawn to the right of #{@position} at #{translateposition(@position, 1, 0)}"
               if board[translateposition(@position, 1, 0)].piece.en_passant && board[translateposition(@position, 1, 0)].piece.colour != @colour
-                puts "passant found?!?!"
+                #puts "passant found?!?!"
                 moves << translateposition(@position, 1, vertical)
               end
             end

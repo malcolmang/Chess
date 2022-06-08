@@ -75,7 +75,7 @@ class Board
   def selectpiece(position) #Selects a piece and highlights possible moves
     if @board[position].piece
       moves = @board[position].piece.allowed_moves(@board)
-      puts "moves: #{moves}"
+      #puts "moves: #{moves}"
     else
       moves = []
     end
