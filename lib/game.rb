@@ -11,8 +11,8 @@ class Game
   end
 
   def print_screen()
-    #system("clear")
-    #system("cls")
+    system("clear")
+    system("cls")
     whichplayer = @player == Foreground_Colour::WHITE ? "White" : "Black"
     puts "Current Player: #{whichplayer}"
     puts "\n\n"
@@ -81,8 +81,19 @@ class Game
 
   def update_board(colour)
     #cleanse en passant flag, check if game is over (won, stalemate), check for check
-    @board.check_for_check(colour)
-    return true
+    @board.cleanse_en_passant(colour)
+    if @board.checkmate?(colour)
+      print_screen()
+      colour = Foreground_Colour::WHITE ? "White" : "Black"
+      puts "Checkmate! #{colour} wins!"
+      return false
+    elsif @board.stalemate?(colour)
+      print_screen()
+      puts "Stalemate!"
+      return false
+    else 
+      return true
+    end
   end
 
   def turn()

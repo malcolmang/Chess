@@ -31,8 +31,13 @@ class Board
       @prevfrom = nil
       @prevto = nil
       placepieces()
+      @realboard = true
     else 
       @board = board.dup
+      @prevfrom = nil
+      @prevto = nil
+      @realboard = false
+    end
   end
 
   def inbounds(pos)
@@ -57,13 +62,12 @@ class Board
       originalcopy = self.dup
       movesnew = moves.dup
       moves.each do |newpos|
-        boardcopy = originalcopy.dup
+        boardcopy = Board.new(Marshal.load(Marshal.dump(originalcopy.board)))
         boardcopy.move(originalpos,newpos)
-        
+        #boardcopy.print_board()
         if check_for_check(colour,boardcopy.board)
           movesnew.delete(newpos)
         end
-        boardcopy.move(newpos,originalpos)
       end
     return movesnew
   end
@@ -76,10 +80,23 @@ class Board
     end
     moves.delete_if {|pos| !@board[pos]}
     moves = account_for_check(position, moves, @board[position].piece.colour)
-    @board[position].state = CellState::SELECTION
-    highlight_moves(moves)
+    if @realboard
+      @board[position].state = CellState::SELECTION
+      highlight_moves(moves)
+    end
     return moves
   end 
+
+  def all_allowed(position)
+    if @board[position].piece
+      moves = @board[position].piece.allowed_moves(@board)
+    else
+      moves = []
+    end
+    moves.delete_if {|pos| !@board[pos]}
+    moves = account_for_check(position, moves, @board[position].piece.colour)
+    return moves
+  end
 
   def highlight_moves(moves)
     moves.each do |move|
@@ -98,19 +115,67 @@ class Board
     end 
   end
 
-  def move(position, newposition, en_passant = false, castle = false, promotion = false)
+  def move(position, newposition)
+    #puts "moving from #{position} to #{newposition}"
     if @prevfrom && @prevto
       @board[@prevfrom].state = CellState::DEFAULT
       @board[@prevto].state = CellState::DEFAULT
     end
     @prevfrom = position
     @prevto = newposition
-
+    #p @board.object_id
+    #if pawn, check for promotion or en passant
     capturedpiece = @board[newposition].piece ? @board[newposition].piece.string : ""
     @board[newposition].piece = @board[position].piece
     @board[position].piece = nil
     @board[newposition].piece.position = newposition
+    if @board[newposition].piece.string == "\u265f" 
+      #if pawn moves 2 steps, trigger en passant flag
+      if newposition[1].to_i - position[1].to_i == 2 || newposition[1].to_i - position[1].to_i == -2
+        #puts "en passant for #{position} to #{newposition}"
+        @board[newposition].piece.en_passant = true
+      end
+
+      #if pawn move was diagonal but there's no piece captured, en passant
+      currentpiece = @board[newposition].piece
+      if currentpiece.colour == Foreground_Colour::WHITE
+        #holy hell!
+        if position[0] != newposition[0] && capturedpiece == "" && position[1] != newposition[1]
+          @board[translateposition(newposition,0,-1)].piece = nil
+        end
+      else
+        if position[0] != newposition[0] && capturedpiece == "" && position[1] != newposition[1]
+          @board[translateposition(newposition,0,1)].piece = nil
+          capturedpiece = "\u265f"
+        end
+      end
+      #promotion 
+      if position[1] == '8' || position[1] == '1'
+        @board[newposition].piece = ask_promotion(@realboard).new(newposition, @board[newposition].piece.colour)
+      end
+    end 
     return capturedpiece
+  end
+
+  def ask_promotion()
+    if !@realboard
+      return Pawn
+    end
+    puts "Promote to what? (Q/R/B/N)"
+    input = gets.chomp.downcase
+    while true
+      if input == "q"
+        return Queen
+      elsif input == "r"
+        return Rook
+      elsif input == "b"
+        return Bishop
+      elsif input == "n"
+        return Knight
+      else
+        puts "Invalid input"
+      end
+    end 
   end
 
 
@@ -181,9 +246,9 @@ class Board
   end
 
   def check_for_check(colour, board = @board)
-    puts "============================="
-    puts "Checking for check with board"
-    print_board()
+    #puts "============================="
+    #puts "Checking for check with board"
+    #print_board()
     kingpos = nil
     #search for king
     board.each do |key, cell|
@@ -191,21 +256,82 @@ class Board
         kingpos = key
       end
     end
-    puts "kingpos: #{kingpos}"
+    #puts "kingpos: #{kingpos}"
     #search for pieces that can attack king
     board.each do |key, cell|
       if cell.piece && cell.piece.colour != colour && cell.piece.string == "\u265f" && cell.piece.threat_moves().include?(kingpos) 
-        p "hello #{cell.piece.threat_moves()}"
-        puts "pawn check at #{key}"
+        #p "hello #{cell.piece.threat_moves()}"
+        #puts "pawn check at #{key}"
         return true 
       else 
-        if cell.piece && cell.piece.colour != colour && cell.piece.allowed_moves(@board).include?(kingpos)
-          puts "check for #{cell.piece.string} at #{key}"
+        if cell.piece && cell.piece.colour != colour && cell.piece.allowed_moves(board).include?(kingpos)
+          #puts "check for #{cell.piece.string} at #{key}"
           return true
         end
       end 
     end
     return false
+  end
+
+  def checkmate?(colour)
+    #invert colour 
+    if colour == Foreground_Colour::WHITE
+      colour = Foreground_Colour::BLACK
+    else
+      colour = Foreground_Colour::WHITE
+    end
+    #puts "============================="
+    #puts "Checking for checkmate with board"
+    #print_board()
+    if check_for_check(colour)
+      #print all possible moves
+      board.each do |key, cell|
+        if cell.piece && cell.piece.colour == colour
+          #puts "=========="
+          #puts "checking #{cell.piece.string} at #{key}"
+          if !all_allowed(key).empty? 
+            #puts "found move!"
+            return false
+          end
+          all_allowed(key).each do |move|
+            #puts "move:#{cell.piece.string} to #{move}"
+          end
+        end
+      end
+      return true
+    end
+  end
+
+  def stalemate?(colour)
+    #invert colour 
+    if colour == Foreground_Colour::WHITE
+      colour = Foreground_Colour::BLACK
+    else
+      colour = Foreground_Colour::WHITE
+    end
+    #puts "============================="
+    #puts "Checking for stalemate with board"
+    #print_board()
+    #puts "Check"
+    if @board.all? {|key, cell| cell.piece && cell.piece.colour == colour && all_allowed(key).empty?}
+      return true
+    end
+    return false
+  end
+
+  def cleanse_en_passant(colour)
+    #reverse colour 
+    if colour == Foreground_Colour::WHITE
+      colour = Foreground_Colour::BLACK
+    else
+      colour = Foreground_Colour::WHITE
+    end
+    #puts "cleansing en passant"
+    for key in @board.keys()
+      if @board[key].piece && @board[key].piece.colour == colour && @board[key].piece.string == "\u265f"
+        @board[key].piece.en_passant = false
+      end
+    end
   end
 end
 

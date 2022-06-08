@@ -60,7 +60,7 @@ class Piece
     #returns array of positions
     moves = []
     newpos = @position
-    p newpos
+    #p newpos
     while newpos[1] != '1' do #MOVE UP
       newpos = translateposition(newpos, 0, -1)
       if board[newpos].piece
@@ -199,8 +199,11 @@ class Knight < Piece
 end
 
 class Pawn < Piece  #Moves up or down depending on black/white. If at original position, can move 2 steps. Can move diagonally if there are pieces there.
+  attr_accessor :en_passant
+  
   def initialize(pos, colour)
     @string = "\u265f"
+    @en_passant = false
     super
   end
 
@@ -234,6 +237,7 @@ class Pawn < Piece  #Moves up or down depending on black/white. If at original p
       end
     else
       if @position[1] == '7'
+        @en_passant = true
         moves << translateposition(@position, 0, -2)
       end
       if @position[1] != '1'
@@ -258,6 +262,30 @@ class Pawn < Piece  #Moves up or down depending on black/white. If at original p
           end
         end
       end
+
+      #holy hell!
+      #en passant - if there is a pawn next to this one that has en_passant flag, allow capture to one vertical space behind it
+      #-1 if black, 1 if white
+      vertical = Foreground_Colour::BLACK == @colour ? -1 : 1
+        if @position[0] != 'a'
+          if board[translateposition(@position, -1, 0)].piece
+            if board[translateposition(@position, -1, 0)].piece.string == "\u265f"
+              if board[translateposition(@position, -1, 0)].piece.en_passant && board[translateposition(@position, -1, 0)].piece.colour != @colour
+                moves << translateposition(@position, -1, vertical)
+              end
+            end
+          end
+        end
+        if @position[0] != 'h'
+          if board[translateposition(@position, 1, 0)].piece
+            if board[translateposition(@position, 1, 0)].piece.string == "\u265f"
+              if board[translateposition(@position, 1, 0)].piece.en_passant && board[translateposition(@position, 1, 0)].piece.colour != @colour
+                moves << translateposition(@position, 1, vertical)
+              end
+            end
+          end
+        end
+
     end
     
     return moves
