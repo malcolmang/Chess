@@ -25,11 +25,14 @@ end
 
 class Board
   attr_accessor :board
-  def initialize
-    @board = createboard()
-    @prevfrom = nil
-    @prevto = nil
-    placepieces()
+  def initialize(board = nil)
+    if board == nil
+      @board = createboard()
+      @prevfrom = nil
+      @prevto = nil
+      placepieces()
+    else 
+      @board = board.dup
   end
 
   def inbounds(pos)
@@ -52,16 +55,17 @@ class Board
   
   def account_for_check(originalpos ,moves, colour) #don't allow moves that would put the player in check, or moves must move king out of check
       originalcopy = self.dup
+      movesnew = moves.dup
       moves.each do |newpos|
         boardcopy = originalcopy.dup
         boardcopy.move(originalpos,newpos)
         
         if check_for_check(colour,boardcopy.board)
-          moves.delete(newpos)
+          movesnew.delete(newpos)
         end
         boardcopy.move(newpos,originalpos)
       end
-    return moves
+    return movesnew
   end
 
   def selectpiece(position) #Selects a piece and highlights possible moves
@@ -70,9 +74,9 @@ class Board
     else
       moves = []
     end
-    @board[position].state = CellState::SELECTION
     moves.delete_if {|pos| !@board[pos]}
     moves = account_for_check(position, moves, @board[position].piece.colour)
+    @board[position].state = CellState::SELECTION
     highlight_moves(moves)
     return moves
   end 
@@ -177,6 +181,9 @@ class Board
   end
 
   def check_for_check(colour, board = @board)
+    puts "============================="
+    puts "Checking for check with board"
+    print_board()
     kingpos = nil
     #search for king
     board.each do |key, cell|
