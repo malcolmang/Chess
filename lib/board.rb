@@ -124,6 +124,23 @@ class Board
     end
     @prevfrom = position
     @prevto = newposition
+    @board[position].piece.moved = true
+    if @board[position].piece.string == "\u265a" && @realboard #CASTLING
+      #if king moves 2 steps, trigger castling flag
+      if LETTER_TO_NUM[newposition[0]].to_i - LETTER_TO_NUM[position[0]].to_i == 2 && @realboard #castling to the right
+        rookpos = 'h' + newposition[1]
+        rooknewpos = 'f' + newposition[1]
+        @board[rookpos].piece.position = rooknewpos
+        @board[rooknewpos].piece = @board[rookpos].piece
+        @board[rookpos].piece = nil
+      elsif LETTER_TO_NUM[newposition[0]].to_i - LETTER_TO_NUM[position[0]].to_i == -2 && @realboard #castling to the left
+        rookpos = 'a' + newposition[1]
+        rooknewpos = 'd' + newposition[1]
+        @board[rookpos].piece.position = rooknewpos
+        @board[rooknewpos].piece = @board[rookpos].piece
+        @board[rookpos].piece = nil
+      end
+    end
     #p @board.object_id
     #if pawn, check for promotion or en passant
     capturedpiece = @board[newposition].piece ? @board[newposition].piece.string : ""
@@ -156,6 +173,8 @@ class Board
         @board[newposition].piece = ask_promotion().new(newposition, @board[newposition].piece.colour)
       end
     end 
+
+    
     return capturedpiece
   end
 

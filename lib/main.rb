@@ -6,7 +6,7 @@ while true
   while game.turn()
   end
   puts "Game is over! Press any key to restart, or q to exit."
-  input = gets.chomp()
+  input = gets.chomp().downcase
   if input == "q"
     break
   end 

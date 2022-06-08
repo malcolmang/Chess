@@ -15,9 +15,11 @@ class Piece
   attr_reader :colour
   attr_reader :string
   attr_accessor :position
+  attr_accessor :moved
   def initialize(pos,colour)
     @colour = colour
     @position = pos
+    @moved = false
   end
 
   def horizontal_moves(board)
@@ -353,7 +355,6 @@ class King < Piece
     @string = "\u265a"
     super
   end
-
   def allowed_moves(board)
     moves = []
     moves << translateposition(@position, 1, 1)
@@ -376,6 +377,19 @@ class King < Piece
       else
         false
       end
+    end 
+
+    #castle - hard coded 
+    if @moved == false && @colour == Foreground_Colour::WHITE && board['h1'].piece && !board['h1'].piece.moved && !board['f1'].piece && !board['g1'].piece
+      moves << 'g1'
+    elsif @moved == false && @colour == Foreground_Colour::BLACK && board['h8'].piece && !board['h8'].piece.moved && !board['f8'].piece && !board['g8'].piece
+      moves << 'g8'
+    elsif @moved == false && @colour == Foreground_Colour::WHITE && board['a1'].piece && !board['a1'].piece.moved && !board['b1'].piece && !board['c1'].piece && !board['d1'].piece
+      moves << 'c1'
+    elsif @moved == false && @colour == Foreground_Colour::BLACK && board['a8'].piece && !board['a8'].piece.moved && !board['b8'].piece && !board['c8'].piece && !board['d8'].piece
+      moves << 'c8'
     end
+
+    return moves
   end 
 end

@@ -13,8 +13,10 @@ class Game
   def print_screen()
     #system("clear")
     #system("cls")
-    whichplayer = @player == Foreground_Colour::WHITE ? "White" : "Black"
+    whichplayer = @player == Foreground_Colour::WHITE ? "WHITE" : "BLACK"
+    puts "===================================="
     puts "Current Player: #{whichplayer}"
+    puts "===================================="
     puts "\n\n"
     puts "   " + "#{@blackgains}".chars.sort.join.reverse
     @board.print_board()
@@ -34,7 +36,7 @@ class Game
       puts "Please select the piece to move:"
       selectedpiece = gets.chomp()
       if selectedpiece.length != 2 
-        errormessagered("Invalid input - please enter exactly 2 characters (a number and a letter)")
+        errormessagered("Invalid input - please enter exactly 2 characters (a letter then a number corresponding to the grid: e.g. e4)")
         next
       elsif !@board.inbounds(selectedpiece)
         errormessagered("Invalid input - please enter a valid position on the board")
@@ -65,7 +67,7 @@ class Game
       selectedmove = gets.chomp()
       return "b" if selectedmove == "b"
       if selectedmove.length != 2
-        errormessagered("Invalid input - please enter exactly 2 characters (a number and a letter)")
+        errormessagered("Invalid input - please enter exactly 2 characters (a letter then a number corresponding to the grid: e.g. e4)")
         next
       elsif !@board.inbounds(selectedmove)
         errormessagered("Invalid input - please enter a valid position on the board")
